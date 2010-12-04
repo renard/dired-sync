@@ -1,39 +1,39 @@
-;;; dired-synchronize.el --- Synchronize directories within dired
+;;; dired-sync.el --- sync directories within dired
 
 ;; Copyright © 2010 Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-04 01:30:55
+;; Last changed: 2010-12-04 11:26:25
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; Commentary:
 ;; 
-(define-key dired-mode-map (kbd "C-c S") 'dired-synchonize)
+(define-key dired-mode-map (kbd "C-c S") 'dired-sync)
 
 ;;; Code:
 
 
-(defcustom dired-synchronize-bin "rsync"
-  "Path to synchonization tool."
+(defcustom dired-sync-bin "rsync"
+  "Path to sync tool."
   :type 'string
-  :group 'dired-synchonize)
+  :group 'dired-sync)
 
-(defcustom dired-synchronize-args '("--delete" "-a" "-i")
-  "Path to synchonization tool."
+(defcustom dired-sync-args '("--delete" "-a" "-i")
+  "Args for sync tool."
   :type 'list
-  :group 'dired-synchonize)
+  :group 'dired-sync)
 
-(defcustom dired-synchronize-time 10
+(defcustom dired-sync-time 10
   "Timeout when performing ssh login tests."
   :type 'integer
-  :group 'dired-synchonize)
+  :group 'dired-sync)
 
 
-(defun dired-synchronize-get-user (host &optional target)
+(defun dired-sync-get-user (host &optional target)
   "Return username on HOST when connecting using ssh.
 
 If TARGET is provided, try to connect to TARGET using HOST as a
@@ -55,7 +55,7 @@ If an error occurs, returns nil."
     (with-timeout 
 	(10 (message 
 	     (format
-	      "dired-synchronize-get-user timeout on %s : %s" host cmd)))
+	      "dired-sync-get-user timeout on %s : %s" host cmd)))
       (shell-command cmd out err))
     (set-buffer out)
     ;; Just keep the last line in case of error such as
@@ -71,7 +71,7 @@ If an error occurs, returns nil."
 
 
 
-(defun dired-synchronize-parse-uri (file)
+(defun dired-sync-parse-uri (file)
   "Parse FILE.
 
 Returned value is a PLIST with following properties.
@@ -104,26 +104,26 @@ Returned value is a PLIST with following properties.
 	 (method (tramp-file-name-method file-vec))
 	 tunnel-port)
     (when (and host (not user))
-      (setq user (dired-synchronize-get-user file)
+      (setq user (dired-sync-get-user file)
 	    tunnel-port (+ 1024 (random (- 32767 1024)))))
     (list :file file :user user :method method :host host :path path
 	  :tunnel-port tunnel-port)))
 
 
 
-(defun dired-synchronize-read-src-dst (&optional source destination)
+(defun dired-sync-read-src-dst (&optional source destination)
   "Read both source and detination directories from minibuffer if not provided.
 
 If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 "
-  (let* ((src (dired-synchronize-parse-uri
+  (let* ((src (dired-sync-parse-uri
 	       (or source
 		   (if (eq major-mode 'dired-mode) default-directory nil)
-		   (read-file-name "Synchonize source: " nil nil t nil))))
-	 (dst (dired-synchronize-parse-uri
+		   (read-file-name "Sync source: " nil nil t nil))))
+	 (dst (dired-sync-parse-uri
 	       (or destination
 		   (read-file-name
-		    (format "Synchonize %s to: " (plist-get src :file)))
+		    (format "Sync %s to: " (plist-get src :file)))
 		nil nil t nil 'file-directory-p)))
 	 direct)
     ;; remove tailing / for source file.
@@ -141,7 +141,7 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 	   (plist-get src :host)
 	   (plist-get dst :host))
       (setq direct
-	    (dired-synchronize-get-user
+	    (dired-sync-get-user
 	     ;; Change to / on remote host to prevent from remote dir not
 	     ;; found errors.
 	     (format "/%s:/" (plist-get src :host))
@@ -152,10 +152,10 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
     (list :src src :dst dst)))
 
 
-(defun dired-synchronize (&optional source destination)
-  "Synchronize 2 directories using `dired-synchonize-bin'."
+(defun dired-sync (&optional source destination)
+  "sync 2 directories using `dired-sync-bin'."
   (interactive)
-  (let* ((files (dired-synchronize-read-src-dst source destination))
+  (let* ((files (dired-sync-read-src-dst source destination))
 	 (src (plist-get files :src))
 	 (dst (plist-get files :dst))
 	 cmd1 cmd2)
@@ -172,8 +172,8 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 		   ,(format "%d:127.0.0.1:%d" (plist-get src :tunnel-port) 
 			    (plist-get dst :tunnel-port))
 		   ,(plist-get src :host)
-		   ,(concat dired-synchronize-bin " "
-			    (mapconcat 'concat dired-synchronize-args " ")
+		   ,(concat dired-sync-bin " "
+			    (mapconcat 'concat dired-sync-args " ")
 			    (format " -e 'ssh -A -p %d " 
 				    (plist-get src :tunnel-port))
 			    "-o StrictHostKeyChecking=no "
@@ -188,8 +188,8 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
        (plist-get src :host)
        (plist-get dst :host))
       (setq cmd1 `("ssh" ,(plist-get src :host)
-		   ,(concat dired-synchronize-bin " " 
-			    (mapconcat 'concat dired-synchronize-args " ")
+		   ,(concat dired-sync-bin " " 
+			    (mapconcat 'concat dired-sync-args " ")
 			    " -e ssh "
 			    (shell-quote-argument (plist-get src :path))
 			    (format " %s@%s:%s" (plist-get dst :user)
@@ -200,8 +200,8 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
      ((or
        (plist-get src :host)
        (plist-get dst :host))
-      (setq cmd1 (apply 'append `((,dired-synchronize-bin)
-				  ,dired-synchronize-args
+      (setq cmd1 (apply 'append `((,dired-sync-bin)
+				  ,dired-sync-args
 				  ("-e") ("ssh")
 				  (,(if (plist-get src :host)
 					(format "%s:%s" (plist-get src :host)
@@ -215,8 +215,8 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 
      ;; all files are local
      (t
-      (setq cmd1 (apply 'append `((,dired-synchronize-bin)
-				  ,dired-synchronize-args
+      (setq cmd1 (apply 'append `((,dired-sync-bin)
+				  ,dired-sync-args
 				  (,(plist-get src :file))
 				  (,(plist-get dst :file))))
 	    cmd2 nil)))
@@ -232,16 +232,16 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 
       (process-put p1 :buf p1-buf)
       (unless cmd2
-	(set-process-sentinel p1 'dired-synchronize-proc-sentinel))
+	(set-process-sentinel p1 'dired-sync-proc-sentinel))
       (when cmd2
 	(setq p2 (apply 'start-process p2-str p2-buf (car cmd2) (cdr cmd2)))
 	(process-put p2 :related p1)
 	(process-put p2 :buf p2-buf)
-	(set-process-sentinel p2 'dired-synchronize-proc-sentinel)))
+	(set-process-sentinel p2 'dired-sync-proc-sentinel)))
     t))
 
 
-(defun dired-synchronize-proc-sentinel (proc change)
+(defun dired-sync-proc-sentinel (proc change)
   (when (eq (process-status proc) 'exit)
     (let ((status (process-exit-status proc))
 	  (buf (process-get proc :buf))
@@ -250,10 +250,10 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 	  (progn
 	    (when (process-buffer proc)
 	      (set-window-buffer (selected-window) buf))
-	    (error "dired-synchronize failled"))
-	(message "dired-synchronize success")
+	    (error "dired-sync failled"))
+	(message "dired-sync success")
 	(kill-buffer buf))
       (when related
 	(kill-process related)))))
 
-(provide 'dired-synchronize)
+(provide 'dired-sync)
