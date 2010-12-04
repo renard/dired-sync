@@ -5,14 +5,14 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-04 01:18:01
+;; Last changed: 2010-12-04 01:30:55
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; Commentary:
 ;; 
-
+(define-key dired-mode-map (kbd "C-c S") 'dired-synchonize)
 
 ;;; Code:
 
