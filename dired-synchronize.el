@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-03 23:02:40
+;; Last changed: 2010-12-04 01:18:01
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -66,15 +66,9 @@ If an error occurs, returns nil."
     (set-buffer err)
     (setq err-s (buffer-string))
     (kill-buffer err)
-    (message (format "OUT: %s" out-s ))
-    (message (format "ERR: %s" err-s ))
     (when (string= "" out-s) (setq out-s nil))
-    (unless out-s
-      (message 
-	     (format
-	      "dired-synchronize-get-user %s error: %s" host err-s)))
     out-s))
-;;    (list :out out-s :err err-s)))
+
 
 
 (defun dired-synchronize-parse-uri (file)
@@ -159,7 +153,6 @@ Returned value is a PLIST with following properties.
 	 (src (plist-get files :src))
 	 (dst (plist-get files :dst))
 	 cmd1 cmd2)
-    (message (format "%s" src))
     (cond
      ;; both files are remote and src cannot connect to dst
      ((and
@@ -239,10 +232,7 @@ Returned value is a PLIST with following properties.
 	(process-put p2 :related p1)
 	(process-put p2 :buf p2-buf)
 	(set-process-sentinel p2 'dired-synchronize-proc-sentinel)))
-    ;; (list
-    ;;  (message (format (combine-and-quote-strings cmd1)))
-    ;;  (message (format (combine-and-quote-strings cmd2))))
-    ))
+    t))
 
 
 (defun dired-synchronize-proc-sentinel (proc change)
