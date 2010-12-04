@@ -112,7 +112,10 @@ Returned value is a PLIST with following properties.
 
 
 (defun dired-synchronize-read-src-dst (&optional source destination)
-  ""
+  "Read both source and detination directories from minibuffer if not provided.
+
+If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
+"
   (let* ((src (dired-synchronize-parse-uri
 	       (or source
 		   (if (eq major-mode 'dired-mode) default-directory nil)
@@ -137,9 +140,12 @@ Returned value is a PLIST with following properties.
     (when (and
 	   (plist-get src :host)
 	   (plist-get dst :host))
-      (setq direct 
+      (setq direct
 	    (dired-synchronize-get-user
-	     (format "/%s:" (plist-get src :host))
+	     ;; Change to / on remote host to prevent from remote dir not
+	     ;; found errors.
+	     (format "/%s:/" (plist-get src :host))
+	     ;; connecter on remote host using appropriated user.
 	     (format "%s@%s" (plist-get dst :user) (plist-get dst :host)))))
     (setq src (plist-put src :direct direct))
     (setq dst (plist-put dst :direct direct))
