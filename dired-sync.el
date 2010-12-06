@@ -299,30 +299,35 @@ SOURCE."
 		    (format "Sync %s to: " (plist-get src :file)))
 		nil nil t nil 'file-directory-p)))
 	 direct)
-    ;; remove tailing / for source file.
-    ;; Prevent from copying all source files into destination without
-    ;; creating a new directory
-    (unless (string= "/" (plist-get src :path))
-      (setq src (plist-put src :file
-			   (replace-regexp-in-string "/*$" ""
-						     (plist-get src :file))))
-      (setq src (plist-put src :path
-			   (replace-regexp-in-string "/*$" ""
-						     (plist-get src :path)))))
-    ;; try to get e direct link between the hosts
-    (when (and
-	   (plist-get src :host)
-	   (plist-get dst :host))
-      (setq direct
-	    (dired-sync-get-user
-	     ;; Change to / on remote host to prevent from remote dir not
-	     ;; found errors.
-	     (format "/%s:/" (plist-get src :host))
-	     ;; connecter on remote host using appropriated user.
-	     (format "%s@%s" (plist-get dst :user) (plist-get dst :host)))))
-    (setq src (plist-put src :direct direct))
-    (setq dst (plist-put dst :direct direct))
-    (list :src src :dst dst)))
+    (dired-sync-with-files
+     src dst
+
+     ;; remove tailing / for source file.
+     ;; Prevent from copying all source files into destination without
+     ;; creating a new directory
+     (unless (string= "/" src-path)
+       (setq src (plist-put src :file
+			    (replace-regexp-in-string "/*$" ""
+						      src-file)))
+       (setq src (plist-put src :path
+			    (replace-regexp-in-string "/*$" ""
+						      src-path)))
+       (setq src (plist-put src :path-quote
+			    (replace-regexp-in-string "/*$" ""
+						      src-path-quote))))
+
+     ;; try to get e direct link between the hosts
+     (when (and src-host dst-host)
+       (setq direct
+	     (dired-sync-get-user
+	      ;; Change to / on remote host to prevent from remote dir not
+	      ;; found errors.
+	      (format "/%s:/" src-host)
+	      ;; connecter on remote host using appropriated user.
+	      (format "%s@%s" dst-user dst-host))))
+     (setq src (plist-put src :direct direct))
+     (setq dst (plist-put dst :direct direct))
+     (list :src src :dst dst))))
 
 
 (defun dired-sync (&optional source destination)
