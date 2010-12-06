@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 16:14:42
+;; Last changed: 2010-12-06 16:17:05
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -126,10 +126,17 @@
   :type 'list
   :group 'dired-sync)
 
-(defcustom dired-sync-time 10
-  "Timeout when performing ssh login tests."
+(defcustom dired-sync-timeout 10
+  "Timeout (in seconds) when performing ssh login tests."
   :type 'integer
   :group 'dired-sync)
+
+(defcustom dired-sync-command-delay 10
+  "Delay (in seconds) between commands when synchronizing 2
+tunneled remote hosts."
+  :type 'integer
+  :group 'dired-sync)
+
 
 
 (defun dired-sync-get-user (host &optional target)
@@ -152,7 +159,7 @@ If an error occurs, returns nil."
 	   "whoami"))
 	in-s out-s)
     (with-timeout 
-	(dired-sync-time (message 
+	(dired-sync-timeout (message 
 	     (format
 	      "dired-sync-get-user timeout on %s : %s" host cmd)))
       (shell-command cmd out err))
@@ -334,7 +341,7 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
 	(set-process-sentinel p1 'dired-sync-proc-sentinel))
       (when cmd2
 	;;make sur shh tunnel is up
-	(sit-for dired-sync-time)
+	(sit-for dired-sync-command-delay)
 	(setq p2 (apply 'start-process p2-str p2-buf (car cmd2) (cdr cmd2)))
 	(process-put p2 :related p1)
 	(process-put p2 :buf p2-buf)
