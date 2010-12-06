@@ -99,10 +99,13 @@
 ;;        HostName jumphostV.internal.other-example.com
 ;;        ProxyCommand ssh -q -t jumphostB  nc -w 1 %h %p
 ;;
-
-
-
-
+;;
+;; then you would be able to connect to hostA by simply typing:
+;;
+;;    ssh hostA
+;;
+;; Or opening a dired buffer to hostB: C-X C-f /scp:hostB:
+;;
  
 ;;; Code:
 
