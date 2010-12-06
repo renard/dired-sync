@@ -234,10 +234,14 @@ If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
       (unless cmd2
 	(set-process-sentinel p1 'dired-sync-proc-sentinel))
       (when cmd2
+	;;make sur shh tunnel is up
+	(sit-for dired-sync-time)
 	(setq p2 (apply 'start-process p2-str p2-buf (car cmd2) (cdr cmd2)))
 	(process-put p2 :related p1)
 	(process-put p2 :buf p2-buf)
 	(set-process-sentinel p2 'dired-sync-proc-sentinel)))
+    ;;(message (concat "C1: " (mapconcat 'append cmd1 " "))))
+    ;;(message (concat "C2: " (mapconcat 'append cmd2 " "))))
     t))
 
 
