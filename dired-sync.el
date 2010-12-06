@@ -5,15 +5,105 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 10:12:49
+;; Last changed: 2010-12-06 16:06:57
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; Commentary:
 ;; 
-(define-key dired-mode-map (kbd "C-c S") 'dired-sync)
+;; dired-sync provide a simple and easy way to synchronize directories from
+;; dired. This tool is based upon both rsync(1) and ssh(1).
+;;
+;; To install `dired-sync' you simply need to drop dired-sync.el in you
+;; load-path and bind (suggested) C-s S key to `dired-sync':
+;;
+;; (when (require 'dired-sync nil t)
+;;   (define-key dired-mode-map (kbd "C-c S") 'dired-sync))
+;;
+;; There are 3 types of directories synchronizations as explained bellow.
+;;
+;; * local / local
+;;   This is the easiest way. rsync(1) would be enough.
+;;
+;; * local / remote or remote / local
+;;   This is also a simple way, the only requirement is a working ssh
+;;   connection to the remote host.
+;;
+;; * remote / remote
+;;   This is a bit more complexe since there are 2 types of remote / remote
+;;   syncs.
+;;   - source server can reach destination server
+;;     In that case `dired-sync' would optimize files synchronisation by
+;;     running rsync(1) on the source server through a ssh connection.
+;;   - source server cannot reach destination server
+;;     This is the more complexe case. `dired-sync' would create a ssh
+;;     tunnel from source to destination using your local machine as a
+;;     jumphost.
+;;     Be aware this mode is greedy regarding bandwidth consumption since
+;;     data are transfered twice: from the source server to localhost AND
+;;     from localhost to destination server.
+;;  If a direct connection could not be established from source to
+;;  destination, `dired-sync' would automatically fall back to the tunneled
+;;  sync mode.
+;;
+;;  `dired-sync' is heavily based on ssh(1) configuration hence your
+;;  ~/.ssh/config file should be as accurate as possible. It doesn't matter
+;;  how many jumphosts you need to use to reach both source and destination
+;;  as long as they are declared in you ssh configuration file.
+;;
+;;      Source                       Destination
+;;
+;;    +---------+   (if possible)    +---------+
+;;    |  HostA  |<- - - - - - - - - >|  HostB  |
+;;    |  UserA  |                    |  UserB  |
+;;    +---------+                    +---------+
+;;         ^                              ^    
+;;    +---------+                    +---------+
+;;    |JumphostA|                    |JumphostB|
+;;    | UserJHA |                    | UserJHB |
+;;    +---------+                    +---------+
+;;         ^                              ^
+;;         |          +---------+         |
+;;         -----------|localhost|----------
+;;                    +---------+
+;;	      
+;; To use that configuration, you ~/.ssh/config may be something like:
+;;
+;;   Host *
+;;        ForwardAgent yes
+;;        RhostsRSAAuthentication yes
+;;        RSAAuthentication yes
+;;        HashKnownHosts yes
+;;        IdentityFile ~/.ssh/id_rsa
+;;        TCPKeepAlive yes
+;;        ServerAliveInterval 30
+;;        Port 22
+;;        Protocol 2,1
+;;
+;;   Host jumphostA
+;;        User userJHA
+;;        HostName jumphostA.example.com
+;;
+;;   Host hostA
+;;        User userA
+;;        HostName jumphostA.internal.example.com
+;;        ProxyCommand ssh -q -t jumphostA  nc -w 1 %h %p
+;;
+;;   Host jumphostB
+;;        User userJHB
+;;        HostName jumphostB.other-example.com
+;;
+;;   Host hostB
+;;        User userB
+;;        HostName jumphostV.internal.other-example.com
+;;        ProxyCommand ssh -q -t jumphostB  nc -w 1 %h %p
+;;
 
+
+
+
+ 
 ;;; Code:
 
 
