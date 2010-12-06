@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 17:49:44
+;; Last changed: 2010-12-06 18:46:36
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -136,6 +136,33 @@
 tunneled remote hosts."
   :type 'integer
   :group 'dired-sync)
+
+(defcustom dired-sync-commands
+  '(:get-user-local
+    (lambda() "whoami")
+    :get-user-remote (lambda()
+		       (concat
+			"ssh -q -o StrictHostKeyChecking=no "
+			"-o PasswordAuthentication=no "
+			"-o UserKnownHostsFile=/dev/null "
+			dst-host " whoami")))
+  "PLIST containing commands used to perform synchronization.
+
+Variables defined in `dired-sync-with-files' could be used.
+
+:get-user-local
+
+  Shell function to be used to retrieve local username. Please
+  note that local is relative to source host.
+
+:get-user-remote
+
+  Shell function to be used to retrieve remote username from
+  source host. This function is used to check source-destination
+  connectivity."
+  :type 'plist
+  :group 'dired-sync)
+
 
 
 (defmacro dired-sync-with-files (src dst &rest body)
