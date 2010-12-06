@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 17:34:52
+;; Last changed: 2010-12-06 17:49:44
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -145,8 +145,8 @@ tunneled remote hosts."
 Variables can be accessed anywhere in BODY.
 
 Variables are: src-file, src-host, src-user, src-path,
-src-tunnel-port, dst-file, dst-host, dst-user, dst-path,
-dst-tunnel-port.
+src-path-quote, src-tunnel-port, dst-file, dst-host, dst-user,
+dst-path, dst-path-quote, dst-tunnel-port.
 
 See `dired-sync-parse-uri' for further information."
   `(let* ((src ,src)
@@ -154,12 +154,14 @@ See `dired-sync-parse-uri' for further information."
 	  (src-host (plist-get ,src :host))
 	  (src-user (plist-get ,src :user))
 	  (src-path (plist-get ,src :path))
+	  (src-path-quote (plist-get ,src :path-quote))
 	  (src-tunnel-port (plist-get ,src :tunnel-port))
 	  (dst ,dst)
 	  (dst-file (plist-get ,dst :file))
 	  (dst-host (plist-get ,dst :host))
 	  (dst-user (plist-get ,dst :user))
 	  (dst-path (plist-get ,dst :path))
+	  (dst-path-quote (plist-get ,dst :path-quote))
 	  (dst-tunnel-port (plist-get ,dst :tunnel-port)))
      ,@body))
 
@@ -228,21 +230,27 @@ Returned value is a PLIST with following properties.
     The full pathname retrieved using
     `tramp-file-name-localname'.
 
+:path-quote
+
+    A shell quoted version of the :path as returned by
+    `shell-quote-argument'.
+
 :tunnel-port
 
     Random port used to for ssh tunnel setup."
   (let* ((file (expand-file-name file))
 	 (file-vec (or (ignore-errors (tramp-dissect-file-name file))
 		       (tramp-dissect-file-name (concat "/:" file) 1)))
-	 (host (tramp-file-name-host file-vec))
+	 (host (tramp-file-name-real-host file-vec))
 	 (user (tramp-file-name-user file-vec))
-	 (path (tramp-file-name-real-local file-vec))
+	 (path (tramp-file-name-localname file-vec))
 	 (method (tramp-file-name-method file-vec))
 	 tunnel-port)
     (when (and host (not user))
       (setq user (dired-sync-get-user file)
 	    tunnel-port (+ 1024 (random (- 32767 1024)))))
     (list :file file :user user :method method :host host :path path
+	  :path-quote (shell-quote-argument path)
 	  :tunnel-port tunnel-port)))
 
 
@@ -250,8 +258,8 @@ Returned value is a PLIST with following properties.
 (defun dired-sync-read-src-dst (&optional source destination)
   "Read both source and detination directories from minibuffer if not provided.
 
-If called from a `dired-mode' buffer, use `default-directory' for SOURCE.
-"
+If called from a `dired-mode' buffer, use `default-directory' for
+SOURCE."
   (let* ((src (dired-sync-parse-uri
 	       (or source
 		   (if (eq major-mode 'dired-mode) default-directory nil)
