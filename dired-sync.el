@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 16:17:05
+;; Last changed: 2010-12-06 17:15:27
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -136,6 +136,32 @@
 tunneled remote hosts."
   :type 'integer
   :group 'dired-sync)
+
+
+(defmacro dired-sync-with-files (src dst &rest body)
+  "Execute BODY after converting both SRC and DST to variables according
+`dired-sync-parse-uri' PLIST definition.
+
+Variables can be accessed anywhere in BODY.
+
+Variables are: src-file, src-host, src-user, src-path,
+src-tunnel-port, dst-file, dst-host, dst-user, dst-path,
+dst-tunnel-port.
+
+See `dired-sync-parse-uri' for further information."
+  `(let* ((src ,src)
+	  (src-file (plist-get ,src :file))
+	  (src-host (plist-get ,src :host))
+	  (src-user (plist-get ,src :user))
+	  (src-path (plist-get ,src :path))
+	  (src-tunnel-port (plist-get ,src :tunnel-port))
+	  (dst ,dst)
+	  (dst-file (plist-get ,dst :file))
+	  (dst-host (plist-get ,dst :host))
+	  (dst-user (plist-get ,dst :user))
+	  (dst-path (plist-get ,dst :path))
+	  (dst-tunnel-port (plist-get ,dst :tunnel-port)))
+     ,@body))
 
 
 
