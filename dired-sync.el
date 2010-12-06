@@ -22,7 +22,7 @@
   :type 'string
   :group 'dired-sync)
 
-(defcustom dired-sync-args '("--delete" "-a" "-i")
+(defcustom dired-sync-args '("--delete" "-a" "-D" "-i")
   "Args for sync tool."
   :type 'list
   :group 'dired-sync)
