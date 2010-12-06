@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 17:15:27
+;; Last changed: 2010-12-06 17:34:52
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -204,35 +204,39 @@ If an error occurs, returns nil."
 
 
 (defun dired-sync-parse-uri (file)
-  "Parse FILE.
+  "Parse FILE which syntax is given by Info node `(tramp) Filename Syntax'.
 
 Returned value is a PLIST with following properties.
 
 :file
 
-    The original FILE name.
+    A copy of original FILE value.
 
 :host
 
-    The remote hostname if applicable.
+    The remote hostname returned by `tramp-file-real-host'. nil
+    if file is local.
 
 :user
 
-    The remove user (login) name if FILE is remote.
+    The remove user (login) name if FILE is remote, nil if user
+    is not specified in FILE, or if FILE is local. Value is
+    retrieved using `tramp-file-name-user'.
 
 :path
 
-    The full pathname.
+    The full pathname retrieved using
+    `tramp-file-name-localname'.
 
 :tunnel-port
 
-    Random port used to for tunnel setup."
+    Random port used to for ssh tunnel setup."
   (let* ((file (expand-file-name file))
 	 (file-vec (or (ignore-errors (tramp-dissect-file-name file))
 		       (tramp-dissect-file-name (concat "/:" file) 1)))
 	 (host (tramp-file-name-host file-vec))
 	 (user (tramp-file-name-user file-vec))
-	 (path (tramp-file-name-localname file-vec))
+	 (path (tramp-file-name-real-local file-vec))
 	 (method (tramp-file-name-method file-vec))
 	 tunnel-port)
     (when (and host (not user))
