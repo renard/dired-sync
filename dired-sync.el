@@ -5,10 +5,16 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-06 16:06:57
+;; Last changed: 2010-12-06 16:14:42
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
+
+;;; History:
+;;  * 0.1 - first release
+
+;;; TODO
+;;  * move both rsync / ssh commands to variables.
 
 ;;; Commentary:
 ;; 
