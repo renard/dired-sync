@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-04 11:26:25
+;; Last changed: 2010-12-06 10:12:49
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -53,7 +53,7 @@ If an error occurs, returns nil."
 	   "whoami"))
 	in-s out-s)
     (with-timeout 
-	(10 (message 
+	(dired-sync-time (message 
 	     (format
 	      "dired-sync-get-user timeout on %s : %s" host cmd)))
       (shell-command cmd out err))
