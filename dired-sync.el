@@ -192,31 +192,30 @@ See `dired-sync-parse-uri' for further information."
 	  (dst-tunnel-port (plist-get ,dst :tunnel-port)))
      ,@body))
 
-
 
-(defun dired-sync-get-user (host &optional target)
-  "Return username on HOST when connecting using ssh.
+(defun dired-sync-get-user ()
+  "Return username on SRC-HOST when connecting using ssh.
 
-If TARGET is provided, try to connect to TARGET using HOST as a
-proxy.
+If DST-HOST is defined, try to connect to DST-HOST using SRC-HOST
+as a proxy.
 
-If an error occurs, returns nil."
+If an error occurs, returns nil.
+
+Both SRC-HOST and DST-HOST should be provided using
+`dired-sync-with-files' macro."
   (let ((err (get-buffer-create "*err*"))
 	(out (get-buffer-create "*out*"))
-	(default-directory host)
+	(default-directory src-file)
 	(cmd 
-	 (if target
-	     (format 
-	      (concat
-	       "ssh -q -o StrictHostKeyChecking=no "
-	       "-o PasswordAuthentication=no "
-	       "-o UserKnownHostsFile=/dev/null %s whoami") target)
-	   "whoami"))
+	 (if dst-host
+	     (funcall (plist-get  dired-sync-commands :get-user-remote))
+	   (funcall (plist-get  dired-sync-commands :get-user-local))))
 	in-s out-s)
     (with-timeout 
-	(dired-sync-timeout (message 
-	     (format
-	      "dired-sync-get-user timeout on %s : %s" host cmd)))
+	(dired-sync-timeout
+	 (message
+	  (format
+	   "dired-sync-get-user timeout on %s : %s" src-host cmd)))
       (shell-command cmd out err))
     (set-buffer out)
     ;; Just keep the last line in case of error such as
@@ -272,13 +271,16 @@ Returned value is a PLIST with following properties.
 	 (user (tramp-file-name-user file-vec))
 	 (path (tramp-file-name-localname file-vec))
 	 (method (tramp-file-name-method file-vec))
-	 tunnel-port)
+	 (ret (list :file file :user user :method method
+		    :host host :path path
+		    :path-quote (shell-quote-argument path)
+		    :tunnel-port nil)))
     (when (and host (not user))
-      (setq user (dired-sync-get-user file)
-	    tunnel-port (+ 1024 (random (- 32767 1024)))))
-    (list :file file :user user :method method :host host :path path
-	  :path-quote (shell-quote-argument path)
-	  :tunnel-port tunnel-port)))
+      (setq ret (plist-put ret :user (dired-sync-with-files ret nil
+							    (dired-sync-get-user2))))
+      (setq ret (plist-put ret :tunnel-port
+			   (+ 1024 (random (- 32767 1024))))))
+    ret))
 
 
 
