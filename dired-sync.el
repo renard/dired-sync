@@ -294,7 +294,7 @@ Returned value is a PLIST with following properties.
 		    :tunnel-port nil)))
     (when (and host (not user))
       (setq ret (plist-put ret :user (dired-sync-with-files ret nil
-							    (dired-sync-get-user2))))
+							    (dired-sync-get-user))))
       (setq ret (plist-put ret :tunnel-port
 			   (+ 1024 (random (- 32767 1024))))))
     ret))
