@@ -468,61 +468,37 @@ SOURCE."
      src dst
      (cond
       ;; both files are remote and src cannot connect to dst
-      ((and
-	(plist-get src :host)
-	(plist-get dst :host)
-	(not (plist-get src :direct)))
-       (setq cmd1 `("ssh" "-L" 
-		    ,(format "%d:127.0.0.1:22" (plist-get dst :tunnel-port))
-		    ,(plist-get dst :host)))
-       (setq cmd2 `("ssh" "-A"  "-R"
-		    ,(format "%d:127.0.0.1:%d" (plist-get src :tunnel-port) 
-			     (plist-get dst :tunnel-port))
-		    ,(plist-get src :host)
-		    ,(concat dired-sync-bin " "
-			     (mapconcat 'concat dired-sync-args " ")
-			     (format " -e 'ssh -A -p %d " 
-				     (plist-get src :tunnel-port))
-			     "-o StrictHostKeyChecking=no "
-			     "-o UserKnownHostsFile=/dev/null' "
-			     (format "%s %s@localhost:%s" 
-				     (plist-get src :path)
-				     (plist-get dst :user) 
-				     (plist-get dst :path))))))
+      ((and  src-host dst-host (not src-direct))
+       (setq cmd1 (funcall (plist-get
+			    dired-sync-commands :do-sync-remote-remote)))
+       (setq cmd2 (cadr cmd1))
+       (setq cmd1 (car cmd1)))
 
-      ;; both files are remote and src cannot connect to dst
-      ((and
-	(plist-get src :host)
-	(plist-get dst :host))
-       (setq cmd1 `("ssh" ,(plist-get src :host)
-		    ,(concat dired-sync-bin " " 
-			     (mapconcat 'concat dired-sync-args " ")
-			     " -e ssh "
-			     (shell-quote-argument (plist-get src :path))
-			     (format " %s@%s:%s" (plist-get dst :user)
-				     (plist-get dst :host)
-				     (shell-quote-argument (plist-get dst :path)))))
-	     cmd2 nil))
-      ;; one file is remote
-      ((or
-	(plist-get src :host)
-	(plist-get dst :host))
-       (setq cmd1 (apply 'append `((,dired-sync-bin)
-				   ,dired-sync-args
-				   ("-e") ("ssh")
-				   (,(if (plist-get src :host)
-					 (format "%s:%s" (plist-get src :host)
-						 (plist-get src :path))
-				       (plist-get src :file)))
-				   (,(if (plist-get dst :host)
-					 (format "%s:%s" (plist-get dst :host)
-						 (plist-get dst :path))
-				       (plist-get dst :file)))))
-	     cmd2 nil))
+      ;; both files are remote and src can connect to dst
+      ((and src-host dst-host)
+       (setq cmd1 (funcall (plist-get
+			    dired-sync-commands :do-sync-remote-remote-direct)))
+       (setq cmd2 (cadr cmd1))
+       (setq cmd1 (car cmd1)))
+
+      ;; source is local, destination is remote
+      ((and (not src-host) dst-host)
+       (setq cmd1 (funcall (plist-get
+			    dired-sync-commands :do-sync-local-remote)))
+       (setq cmd2 (cadr cmd1))
+       (setq cmd1 (car cmd1)))
+
+      ;; source is remote, destination is local
+      ((and src-host (not dst-host))
+       (setq cmd1 (funcall (plist-get
+			    dired-sync-commands :do-sync-remote-local)))
+       (setq cmd2 (cadr cmd1))
+       (setq cmd1 (car cmd1)))
 
       ;; all files are local
       (t
-       (setq cmd1 (funcall (plist-get  dired-sync-commands :do-sync-local-local)))
+       (setq cmd1 (funcall (plist-get
+			    dired-sync-commands :do-sync-local-local)))
        (setq cmd2 (cadr cmd1))
        (setq cmd1 (car cmd1))))
 
