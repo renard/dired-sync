@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 15:37:42
+;; Last changed: 2010-12-07 15:53:29
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -191,6 +191,17 @@ tunneled remote hosts."
 		"rsync --delete -a -D -i -e ssh " src-path
 		(format " %s@%s:%s" dst-user dst-host dst-path)))
 	 nil)))
+    :do-sync-remote-remote-same
+    (lambda (&optional s-host s-path d-path &rest ignore)
+      (let ((src-host (or s-host src-host))
+	    (src-path (or s-path src-path-quote))
+	    (dst-path (or d-path dst-path-quote)))
+	(list
+	 (list "ssh" "-A" src-host
+	       (concat 
+		"rsync --delete -a -D -i " 
+		src-path " " dst-path))
+	 nil)))
     :do-sync-remote-remote
     (lambda (&optional s-host s-path s-tunnel-port
 		       d-user d-host d-path d-tunnel-port
@@ -264,6 +275,15 @@ Variables defined in `dired-sync-with-files' could be used.
   Shell function to be used to synchronize two remote
   directories. This is used then source host can connect to
   destination host. This function should return a list of 2 items
+  suitable for `start-process'.
+
+  Generally the first element of the list is a list containing
+  full rsync parameters. The second element should be nil.
+
+::do-sync-remote-remote-same
+
+  Shell function to be used to synchronize two remote directories
+  on the same host.This function should return a list of 2 items
   suitable for `start-process'.
 
   Generally the first element of the list is a list containing
@@ -461,6 +481,9 @@ SOURCE."
     (dired-sync-with-files
      src dst
      (cond
+      ;; both files are remote and on the same host.
+      ((and src-host dst-host (string= src-host dst-host))
+       (setq item :do-sync-remote-remote-same))
       ;; both files are remote and src cannot connect to dst
       ((and  src-host dst-host (not src-direct))
        (setq item :do-sync-remote-remote))
