@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 17:47:08
+;; Last changed: 2010-12-07 17:53:19
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -430,7 +430,7 @@ Returned value is a PLIST with following properties.
 (defun dired-sync-read-src-dst (&optional source destination)
   "Read both source and detination directories from minibuffer if not provided.
 
-If called from a `dired-mode' buffer, use `default-directory' for
+If called from a `dired-mode' buffer, use `dired-file-at-point' for
 SOURCE."
   (let* ((src (dired-sync-parse-uri
 	       (or source
@@ -442,7 +442,7 @@ SOURCE."
 	       (or destination
 		   (read-file-name
 		    (format "Sync %s to: " (plist-get src :file)))
-		nil nil t nil 'file-directory-p)))
+		nil nil t nil)))
 	 direct)
     (dired-sync-with-files
      src dst
