@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 15:22:37
+;; Last changed: 2010-12-07 15:37:42
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -451,49 +451,35 @@ SOURCE."
 
 ;;;###autoload
 (defun dired-sync (&optional source destination)
-  "sync 2 directories using `dired-sync-bin'."
+  "Synchronize 2 directories using commands defined in
+`dired-sync-commands'."
   (interactive)
   (let* ((files (dired-sync-read-src-dst source destination))
 	 (src (plist-get files :src))
 	 (dst (plist-get files :dst))
-	 cmd1 cmd2)
+	 item clist cmd1 cmd2 )
     (dired-sync-with-files
      src dst
      (cond
       ;; both files are remote and src cannot connect to dst
       ((and  src-host dst-host (not src-direct))
-       (setq cmd1 (funcall (plist-get
-			    dired-sync-commands :do-sync-remote-remote)))
-       (setq cmd2 (cadr cmd1))
-       (setq cmd1 (car cmd1)))
-
+       (setq item :do-sync-remote-remote))
       ;; both files are remote and src can connect to dst
       ((and src-host dst-host)
-       (setq cmd1 (funcall (plist-get
-			    dired-sync-commands :do-sync-remote-remote-direct)))
-       (setq cmd2 (cadr cmd1))
-       (setq cmd1 (car cmd1)))
-
+       (setq item :do-sync-remote-remote-direct))
       ;; source is local, destination is remote
       ((and (not src-host) dst-host)
-       (setq cmd1 (funcall (plist-get
-			    dired-sync-commands :do-sync-local-remote)))
-       (setq cmd2 (cadr cmd1))
-       (setq cmd1 (car cmd1)))
-
+       (setq item :do-sync-local-remote))
       ;; source is remote, destination is local
       ((and src-host (not dst-host))
-       (setq cmd1 (funcall (plist-get
-			    dired-sync-commands :do-sync-remote-local)))
-       (setq cmd2 (cadr cmd1))
-       (setq cmd1 (car cmd1)))
-
+       (setq item :do-sync-remote-local))
       ;; all files are local
       (t
-       (setq cmd1 (funcall (plist-get
-			    dired-sync-commands :do-sync-local-local)))
-       (setq cmd2 (cadr cmd1))
-       (setq cmd1 (car cmd1))))
+       (setq item :do-sync-local-local)))
+
+     (setq clist (funcall (plist-get dired-sync-commands item)))
+     (setq cmd2 (cadr clist))
+     (setq cmd1 (car clist))
      ;; (message (concat "C1: " (mapconcat 'append cmd1 " ")))
      ;; (message (concat "C2: " (mapconcat 'append cmd2 " ")))
      (let* ((p1-str (format "dired-sync %s to %s"
@@ -515,7 +501,7 @@ SOURCE."
 	 (process-put p2 :related p1)
 	 (process-put p2 :buf p2-buf)
 	 (set-process-sentinel p2 'dired-sync-proc-sentinel)))
-
+     
      t)))
 
 
