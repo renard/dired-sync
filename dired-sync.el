@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 17:53:19
+;; Last changed: 2010-12-07 18:00:22
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -25,7 +25,7 @@
 ;; load-path and bind (suggested) C-s S key to `dired-sync':
 ;;
 ;; (when (require 'dired-sync nil t)
-;;   (define-key dired-mode-map (kbd "C-c S") 'dired-sync))
+;;   (define-key dired-mode-map (kbd "C-c S") 'dired-do-sync))
 ;;
 ;; There are 3 types of directories synchronizations as explained bellow.
 ;;
@@ -468,7 +468,7 @@ SOURCE."
 
 
 ;;;###autoload
-(defun dired-sync (&optional source destination)
+(defun dired-do-sync (&optional source destination)
   "Synchronize 2 directories using commands defined in
 `dired-sync-commands'."
   (interactive)
@@ -524,7 +524,7 @@ SOURCE."
      
      t)))
 
-
+
 (defun dired-sync-proc-sentinel (proc change)
   (when (eq (process-status proc) 'exit)
     (let ((status (process-exit-status proc))
