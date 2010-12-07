@@ -333,16 +333,16 @@ If an error occurs, returns nil.
 
 Both SRC-HOST and DST-HOST provided by `dired-sync-with-files'
 macro are used if needed."
-  (let ((src-host (or s-host src-host))
-	(dst-host (or d-host dst-host))
-	(err (get-buffer-create "*err*"))
-	(out (get-buffer-create "*out*"))
-	(default-directory src-file)
-	(cmd 
-	 (if dst-host
-	     (funcall (plist-get  dired-sync-commands :get-user-remote))
-	   (funcall (plist-get  dired-sync-commands :get-user-local))))
-	in-s out-s)
+  (let* ((src-host (or s-host src-host))
+	 (dst-host (or d-host (if (boundp 'dst-host) dst-host nil)))
+	 (err (get-buffer-create "*err*"))
+	 (out (get-buffer-create "*out*"))
+	 (default-directory (format "/%s:/" src-host))
+	 (cmd 
+	  (if dst-host
+	      (funcall (plist-get  dired-sync-commands :get-user-remote))
+	    (funcall (plist-get  dired-sync-commands :get-user-local))))
+	 in-s out-s)
     (with-timeout 
 	(dired-sync-timeout
 	 (message
