@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 16:55:49
+;; Last changed: 2010-12-07 17:04:21
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -37,7 +37,7 @@
 ;;   connection to the remote host.
 ;;
 ;; * remote / remote
-;;   This is a bit more complexe since there are 2 types of remote / remote
+;;   This is a bit more complexe since there are 3 types of remote / remote
 ;;   syncs.
 ;;   - source server can reach destination server
 ;;     In that case `dired-sync' would optimize files synchronisation by
@@ -49,6 +49,10 @@
 ;;     Be aware this mode is greedy regarding bandwidth consumption since
 ;;     data are transfered twice: from the source server to localhost AND
 ;;     from localhost to destination server.
+;;   - Both source and destination are located on the same remote host.
+;;     This case is the same as the first one (source server can reach
+;;     destination server) except the destination directory is local (on the
+;;     remote host).
 ;;  If a direct connection could not be established from source to
 ;;  destination, `dired-sync' would automatically fall back to the tunneled
 ;;  sync mode.
