@@ -208,17 +208,19 @@ See `dired-sync-parse-uri' for further information."
      ,@body))
 
 
-(defun dired-sync-get-user ()
-  "Return username on SRC-HOST when connecting using ssh.
+(defun dired-sync-get-user (&optional s-host d-host)
+  "Return username on S-HOST when connecting using ssh.
 
-If DST-HOST is defined, try to connect to DST-HOST using SRC-HOST
+If D-HOST is defined, try to connect to D-HOST using S-HOST
 as a proxy.
 
 If an error occurs, returns nil.
 
-Both SRC-HOST and DST-HOST should be provided using
-`dired-sync-with-files' macro."
-  (let ((err (get-buffer-create "*err*"))
+Both SRC-HOST and DST-HOST provided by `dired-sync-with-files'
+macro are used if needed."
+  (let ((src-host (or s-host src-host))
+	(dst-host (or d-host dst-host))
+	(err (get-buffer-create "*err*"))
 	(out (get-buffer-create "*out*"))
 	(default-directory src-file)
 	(cmd 
