@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 11:13:23
+;; Last changed: 2010-12-07 14:34:55
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -148,17 +148,83 @@ tunneled remote hosts."
 			  "-o UserKnownHostsFile=/dev/null "
 			  dst-host " whoami")))
     :do-sync-local-local (lambda (&optional s-path d-path
+					    &rest ignore)
+			   (let ((src-path (or s-path
+					       src-path-quote))
+				 (dst-path (or d-path
+					       dst-path-quote))))
+			   (list
+			    (list "rsync" "--delete" "-a" "-D" "-i"
+				  src-path dst-path)
+			    nil))
+    :do-sync-remote-local (lambda (&optional s-host s-path d-path
 					     &rest ignore)
-				  (let ((src-path (or s-path
-						      src-path-quote))
-					(dst-path (or d-path
-						      dst-path-quote))))
-				  (list
-				   (list "rsync" "--delete" "-a" "-D" "-i"
-					 src-path dst-path)
-				   nil))
-
-			      
+			    (let ((src-host (or s-host
+						src-host))
+				  (src-path (or s-path
+						src-path-quote))
+				  (dst-path (or d-path
+						dst-path-quote))))
+			    (list
+			     (list "rsync" "--delete" "-a" "-D" "-i"
+				   (format "%s:%s" src-host src-path)
+				   dst-path)
+			     nil))
+    :do-sync-local-remote (lambda (&optional s-path d-host d-path
+					     &rest ignore)
+			    (let ((src-path (or s-path
+						src-path-quote))
+				  (dst-host (or d-host
+						dst-host))
+				  (dst-path (or d-path
+						dst-path-quote)))
+			      (list
+			       (list "rsync" "--delete" "-a" "-D" "-i"
+				     src-path
+				     (format "%s:%s" dst-host
+					     dst-path))
+			       nil)))
+    :do-sync-remote-remote-direct
+    (lambda (&optional s-host s-path d-user d-host d-path
+		       &rest ignore)
+      (let ((src-host (or s-host src-host))
+	    (src-path (or s-path src-path-quote))
+	    (dst-user (or d-user dst-user))
+	    (dst-host (or d-host dst-host))
+	    (dst-path (or d-path dst-path-quote)))
+	(list
+	 (list "ssh" "-A" src-host
+	       (concat 
+		"rsync --delete -a -D -i -e ssh " src-path
+		(format " %s@%s:%s" dst-user dst-host dst-path)))
+	 nil)))
+			
+    :do-sync-remote-remote
+    (lambda (&optional s-host s-path s-tunnel-port
+		       d-user d-host d-path d-tunnel-port
+		       &rest ignore)
+      (let ((src-host (or s-host src-host))
+	    (src-path (or s-path src-path-quote))
+	    (src-tunnel-port (or s-tunnel-port src-tunnel-port))
+	    (dst-user (or d-user dst-user))
+	    (dst-host (or d-host dst-host))
+	    (dst-path (or d-path dst-path-quote))
+	    (dst-tunnel-port (or d-tunnel-port dst-tunnel-port)))
+	(list
+	 (list "ssh" "-L"
+	       (format "%d:127.0.0.1:22" dst-tunnel-port)
+	       dst-host)
+	 (list "ssh" "-A" "-R" 
+	       (format "%d:127.0.0.1:%d" src-tunnel-port
+		       dst-tunnel-port)
+	       src-host
+	       (concat 
+		"rsync --delete -a -D -i -e "
+		"'ssh -A -p " (format "%d " src-tunnel-port)
+		"-o StrictHostKeyChecking=no "
+		"-o UserKnownHostsFile=/dev/null' "
+		src-path-quote
+		(format " %s@localhost:%s" dst-user dst-path-quote))))))
 
 )
   "PLIST containing commands used to perform synchronization.
@@ -169,12 +235,59 @@ Variables defined in `dired-sync-with-files' could be used.
 
   Shell function to be used to retrieve local username. Please
   note that local is relative to source host.
+  Should return a string evaluated by `shell-command'.
 
 :get-user-remote
 
   Shell function to be used to retrieve remote username from
   source host. This function is used to check source-destination
-  connectivity."
+  connectivity.
+  Should return a string evaluated by `shell-command'.
+
+:do-sync-local-local
+
+  Shell function to be used to synchronize two local directories.
+  This function should return a list of 2 items suitable for
+  `start-process'.
+
+  Generally the first element of the list is a list containing
+  full rsync parameters. The second element should be nil.
+
+
+:do-sync-local-remote
+
+  Shell function to be used to synchronize local directory to a
+  remote one. Like ::do-sync-local-local This function should
+  return a list of 2 items suitable for `start-process'.
+
+  Generally the first element of the list is a list containing
+  full rsync parameters. The second element should be nil.
+
+:do-sync-remote-local
+
+  Same as :do-sync-local-remote but in a reverse way.
+
+:do-sync-remote-remote-direct
+
+  Shell function to be used to synchronize two remote
+  directories. This is used then source host can connect to
+  destination host. This function should return a list of 2 items
+  suitable for `start-process'.
+
+  Generally the first element of the list is a list containing
+  full rsync parameters. The second element should be nil.
+
+:do-sync-remote-remote
+
+  Shell function to be used to synchronize two remote
+  directories. This is used when source host cannot connect to
+  destination host. This function should return a list of 2
+  items suitable for `start-process'.
+
+  Generally the first element of the list is a list containing
+  ssh tunnel setup from local host to destination host, second
+  element should contain the rsync command from source host to
+  destination using local host as a ssh tunnel gateway."
   :type 'plist
   :group 'dired-sync)
 
