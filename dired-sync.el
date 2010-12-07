@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 15:21:27
+;; Last changed: 2010-12-07 15:22:37
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -494,11 +494,8 @@ SOURCE."
 			    dired-sync-commands :do-sync-local-local)))
        (setq cmd2 (cadr cmd1))
        (setq cmd1 (car cmd1))))
-
-
-     (message (concat "C1: " (mapconcat 'append cmd1 " ")))
-     (message (concat "C2: " (mapconcat 'append cmd2 " ")))
-
+     ;; (message (concat "C1: " (mapconcat 'append cmd1 " ")))
+     ;; (message (concat "C2: " (mapconcat 'append cmd2 " ")))
      (let* ((p1-str (format "dired-sync %s to %s"
 			    (plist-get src :file)
 			    (plist-get dst :file)))
