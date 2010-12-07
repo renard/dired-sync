@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 15:53:29
+;; Last changed: 2010-12-07 16:37:51
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -153,86 +153,75 @@ tunneled remote hosts."
 	 "-o UserKnownHostsFile=/dev/null "
 	 dst-host " whoami")))
     :do-sync-local-local
-    (lambda (&optional s-path d-path &rest ignore)
-      (let ((src-path (or s-path src-path-quote))
-	    (dst-path (or d-path dst-path-quote))))
-      (list
-       (list "rsync" "--delete" "-a" "-D" "-i" src-path dst-path)
-       nil))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "rsync" "--delete" "-a" "-D" "-i" 
+	      src-path-quote dst-path-quote)
+	nil)))
     :do-sync-remote-local
-    (lambda (&optional s-host s-path d-path &rest ignore)
-      (let ((src-host (or s-host src-host))
-	    (src-path (or s-path src-path-quote))
-	    (dst-path (or d-path dst-path-quote)))
-	(list
-	 (list "rsync" "--delete" "-a" "-D" "-i"
-	       (format "%s:%s" src-host src-path) dst-path)
-	 nil)))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "rsync" "--delete" "-a" "-D" "-i"
+	      (format "%s:%s" src-host src-path) dst-path)
+	nil)))
     :do-sync-local-remote
-    (lambda (&optional s-path d-host d-path &rest ignore)
-      (let ((src-path (or s-path src-path-quote))
-	    (dst-host (or d-host dst-host))
-	    (dst-path (or d-path dst-path-quote)))
-	(list
-	 (list "rsync" "--delete" "-a" "-D" "-i" src-path
-	       (format "%s:%s" dst-host dst-path))
-	 nil)))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "rsync" "--delete" "-a" "-D" "-i" src-path
+	      (format "%s:%s" dst-host dst-path))
+	nil)))
     :do-sync-remote-remote-direct
-    (lambda (&optional s-host s-path d-user d-host d-path
-		       &rest ignore)
-      (let ((src-host (or s-host src-host))
-	    (src-path (or s-path src-path-quote))
-	    (dst-user (or d-user dst-user))
-	    (dst-host (or d-host dst-host))
-	    (dst-path (or d-path dst-path-quote)))
-	(list
-	 (list "ssh" "-A" src-host
-	       (concat 
-		"rsync --delete -a -D -i -e ssh " src-path
-		(format " %s@%s:%s" dst-user dst-host dst-path)))
-	 nil)))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "ssh" "-A" src-host
+	      (concat "rsync --delete -a -D -i -e ssh " src-path
+		      (format " %s@%s:%s" dst-user dst-host
+			      dst-path)))
+	nil)))
     :do-sync-remote-remote-same
-    (lambda (&optional s-host s-path d-path &rest ignore)
-      (let ((src-host (or s-host src-host))
-	    (src-path (or s-path src-path-quote))
-	    (dst-path (or d-path dst-path-quote)))
-	(list
-	 (list "ssh" "-A" src-host
-	       (concat 
-		"rsync --delete -a -D -i " 
-		src-path " " dst-path))
-	 nil)))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "ssh" "-A" src-host
+	      (concat "rsync --delete -a -D -i " src-path " "
+		      dst-path))
+	nil)))
     :do-sync-remote-remote
-    (lambda (&optional s-host s-path s-tunnel-port
-		       d-user d-host d-path d-tunnel-port
-		       &rest ignore)
-      (let ((src-host (or s-host src-host))
-	    (src-path (or s-path src-path-quote))
-	    (src-tunnel-port (or s-tunnel-port src-tunnel-port))
-	    (dst-user (or d-user dst-user))
-	    (dst-host (or d-host dst-host))
-	    (dst-path (or d-path dst-path-quote))
-	    (dst-tunnel-port (or d-tunnel-port dst-tunnel-port)))
-	(list
-	 (list "ssh" "-L"
-	       (format "%d:127.0.0.1:22" dst-tunnel-port)
-	       dst-host)
-	 (list "ssh" "-A" "-R" 
-	       (format "%d:127.0.0.1:%d" src-tunnel-port
-		       dst-tunnel-port)
-	       src-host
-	       (concat 
-		"rsync --delete -a -D -i -e "
-		"'ssh -A -p " (format "%d " src-tunnel-port)
-		"-o StrictHostKeyChecking=no "
-		"-o PasswordAuthentication=no "
-		"-o UserKnownHostsFile=/dev/null' "
-		src-path-quote
-		(format " %s@localhost:%s" dst-user
-			dst-path-quote)))))))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (list
+	(list "ssh" "-L"
+	      (format "%d:127.0.0.1:22" dst-tunnel-port)
+	      dst-host)
+	(list "ssh" "-A" "-R" 
+	      (format "%d:127.0.0.1:%d" src-tunnel-port
+		      dst-tunnel-port)
+	      src-host
+	      (concat 
+	       "rsync --delete -a -D -i -e "
+	       "'ssh -A -p " (format "%d " src-tunnel-port)
+	       "-o StrictHostKeyChecking=no "
+	       "-o PasswordAuthentication=no "
+	       "-o UserKnownHostsFile=/dev/null' "
+	       src-path-quote
+	       (format " %s@localhost:%s"
+		       dst-user dst-path-quote)))))))
+
   "PLIST containing commands used to perform synchronization.
 
-Variables defined in `dired-sync-with-files' could be used.
+Function are called with 2 parameters SRC and DST as return by
+`dired-sync-parse-uri' suitable for `dired-sync-with-files'
+macro.
 
 :get-user-local
 
@@ -499,8 +488,7 @@ SOURCE."
       ;; all files are local
       (t
        (setq item :do-sync-local-local)))
-
-     (setq clist (funcall (plist-get dired-sync-commands item)))
+     (setq clist (funcall (plist-get dired-sync-commands item) src dst))
      (setq cmd2 (cadr clist))
      (setq cmd1 (car clist))
      ;; (message (concat "C1: " (mapconcat 'append cmd1 " ")))
