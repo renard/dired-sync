@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 16:44:10
+;; Last changed: 2010-12-07 16:55:49
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -143,7 +143,7 @@ tunneled remote hosts."
 
 (defcustom dired-sync-commands
   '(:get-user-local
-    (lambda (&rest ignore) "whoami")
+    (lambda (&rest ignore) "id -un")
     :get-user-remote
     (lambda (&optional d-host &rest ignore)
       (let ((dst-host (or d-host dst-host)))
@@ -151,7 +151,7 @@ tunneled remote hosts."
 	 "ssh -q -o StrictHostKeyChecking=no "
 	 "-o PasswordAuthentication=no "
 	 "-o UserKnownHostsFile=/dev/null "
-	 dst-host " whoami")))
+	 dst-host " 'id -un'")))
     :do-sync-local-local
     (lambda (src dst)
       (dired-sync-with-files
