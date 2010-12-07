@@ -451,12 +451,7 @@ SOURCE."
      ;; try to get e direct link between the hosts
      (when (and src-host dst-host)
        (setq direct
-	     (dired-sync-get-user
-	      ;; Change to / on remote host to prevent from remote dir not
-	      ;; found errors.
-	      (format "/%s:/" src-host)
-	      ;; connecter on remote host using appropriated user.
-	      (format "%s@%s" dst-user dst-host))))
+	     (dired-sync-get-user src-host (format "%s@%s" dst-user dst-host))))
      (setq src (plist-put src :direct direct))
      (setq dst (plist-put dst :direct direct))
      (list :src src :dst dst))))
