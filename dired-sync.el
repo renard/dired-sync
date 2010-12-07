@@ -300,8 +300,8 @@ Variables defined in `dired-sync-with-files' could be used.
 Variables can be accessed anywhere in BODY.
 
 Variables are: src-file, src-host, src-user, src-path,
-src-path-quote, src-tunnel-port, dst-file, dst-host, dst-user,
-dst-path, dst-path-quote, dst-tunnel-port.
+src-path-quote, src-tunnel-port, src-direct, dst-file, dst-host,
+dst-user, dst-path, dst-path-quote, dst-tunnel-port, dst-direct.
 
 See `dired-sync-parse-uri' for further information."
   `(let* ((src ,src)
@@ -311,13 +311,15 @@ See `dired-sync-parse-uri' for further information."
 	  (src-path (plist-get ,src :path))
 	  (src-path-quote (plist-get ,src :path-quote))
 	  (src-tunnel-port (plist-get ,src :tunnel-port))
+	  (src-direct (plist-get ,src :direct))
 	  (dst ,dst)
 	  (dst-file (plist-get ,dst :file))
 	  (dst-host (plist-get ,dst :host))
 	  (dst-user (plist-get ,dst :user))
 	  (dst-path (plist-get ,dst :path))
 	  (dst-path-quote (plist-get ,dst :path-quote))
-	  (dst-tunnel-port (plist-get ,dst :tunnel-port)))
+	  (dst-tunnel-port (plist-get ,dst :tunnel-port))
+	  (dst-direct (plist-get ,dst :direct)))
      ,@body))
 
 
