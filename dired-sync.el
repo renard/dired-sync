@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 15:14:56
+;; Last changed: 2010-12-07 15:20:36
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -117,6 +117,18 @@
 ;;
  
 ;;; Code:
+
+(defconst dired-sync-version "0.1"
+  "The version number of dired-sync.")
+
+;;;###autoload
+(defun dired-sync-version (arg)
+  "Print version number of dired-sync in minibuffer or current
+buffer."
+  (interactive "P")
+  (if arg 
+      (insert dired-sync-version) 
+    (message dired-sync-version)))
 
 (defcustom dired-sync-timeout 10
   "Timeout (in seconds) when performing ssh login tests."
