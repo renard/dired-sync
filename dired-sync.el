@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 17:42:49
+;; Last changed: 2010-12-07 17:47:08
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -434,7 +434,9 @@ If called from a `dired-mode' buffer, use `default-directory' for
 SOURCE."
   (let* ((src (dired-sync-parse-uri
 	       (or source
-		   (if (eq major-mode 'dired-mode) default-directory nil)
+		   (if (eq major-mode 'dired-mode)
+		       (dired-file-name-at-point)
+		     nil)
 		   (read-file-name "Sync source: " nil nil t nil))))
 	 (dst (dired-sync-parse-uri
 	       (or destination
