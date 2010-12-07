@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 14:34:55
+;; Last changed: 2010-12-07 14:41:36
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -114,17 +114,6 @@
 ;;
  
 ;;; Code:
-
-
-(defcustom dired-sync-bin "rsync"
-  "Path to sync tool."
-  :type 'string
-  :group 'dired-sync)
-
-(defcustom dired-sync-args '("--delete" "-a" "-D" "-i")
-  "Args for sync tool."
-  :type 'list
-  :group 'dired-sync)
 
 (defcustom dired-sync-timeout 10
   "Timeout (in seconds) when performing ssh login tests."
