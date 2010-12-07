@@ -139,13 +139,28 @@ tunneled remote hosts."
 
 (defcustom dired-sync-commands
   '(:get-user-local
-    (lambda() "whoami")
-    :get-user-remote (lambda()
-		       (concat
-			"ssh -q -o StrictHostKeyChecking=no "
-			"-o PasswordAuthentication=no "
-			"-o UserKnownHostsFile=/dev/null "
-			dst-host " whoami")))
+    (lambda (&rest ignore) "whoami")
+    :get-user-remote (lambda (&optional d-host &rest ignore)
+		       (let ((dst-host (or d-host dst-host)))
+			 (concat
+			  "ssh -q -o StrictHostKeyChecking=no "
+			  "-o PasswordAuthentication=no "
+			  "-o UserKnownHostsFile=/dev/null "
+			  dst-host " whoami")))
+    :do-sync-local-local (lambda (&optional s-path d-path
+					     &rest ignore)
+				  (let ((src-path (or s-path
+						      src-path-quote))
+					(dst-path (or d-path
+						      dst-path-quote))))
+				  (list
+				   (list "rsync" "--delete" "-a" "-D" "-i"
+					 src-path dst-path)
+				   nil))
+
+			      
+
+)
   "PLIST containing commands used to perform synchronization.
 
 Variables defined in `dired-sync-with-files' could be used.
