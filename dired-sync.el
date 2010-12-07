@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 16:37:51
+;; Last changed: 2010-12-07 16:44:10
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -435,19 +435,16 @@ SOURCE."
     (dired-sync-with-files
      src dst
 
-     ;; remove tailing / for source file.
+     ;; remove tailing / from source file (:file :path and :path-quote)
      ;; Prevent from copying all source files into destination without
-     ;; creating a new directory
+     ;; creating a new directory.
      (unless (string= "/" src-path)
-       (setq src (plist-put src :file
-			    (replace-regexp-in-string "/*$" ""
-						      src-file)))
-       (setq src (plist-put src :path
-			    (replace-regexp-in-string "/*$" ""
-						      src-path)))
-       (setq src (plist-put src :path-quote
-			    (replace-regexp-in-string "/*$" ""
-						      src-path-quote))))
+       (mapcar '(lambda(x)
+		  (setq src
+			(plist-put src x
+				   (replace-regexp-in-string
+				    "/*$" "" (plist-get src x)))))
+	       '(:file :path :path-quote)))
 
      ;; try to get e direct link between the hosts
      (when (and src-host dst-host)
