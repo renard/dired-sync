@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 17:04:21
+;; Last changed: 2010-12-07 17:38:56
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -147,15 +147,19 @@ tunneled remote hosts."
 
 (defcustom dired-sync-commands
   '(:get-user-local
-    (lambda (&rest ignore) "id -un")
+    (lambda (src dst) "id -un")
     :get-user-remote
-    (lambda (&optional d-host &rest ignore)
-      (let ((dst-host (or d-host dst-host)))
-	(concat
-	 "ssh -q -o StrictHostKeyChecking=no "
-	 "-o PasswordAuthentication=no "
-	 "-o UserKnownHostsFile=/dev/null "
-	 dst-host " 'id -un'")))
+    (lambda (src dst)
+      (dired-sync-with-files
+       src dst
+       (concat
+	"ssh -q -o StrictHostKeyChecking=no "
+	"-o PasswordAuthentication=no "
+	"-o UserKnownHostsFile=/dev/null "
+	(if dst-user
+	    (format "%s@%s" dst-user dst-host)
+	  dst-host)
+	" 'id -un'")))
     :do-sync-local-local
     (lambda (src dst)
       (dired-sync-with-files
@@ -328,7 +332,7 @@ See `dired-sync-parse-uri' for further information."
      ,@body))
 
 
-(defun dired-sync-get-user (&optional s-host d-host)
+(defun dired-sync-get-user (src &optional dst)
   "Return username on S-HOST when connecting using ssh.
 
 If D-HOST is defined, try to connect to D-HOST using S-HOST
@@ -338,33 +342,36 @@ If an error occurs, returns nil.
 
 Both SRC-HOST and DST-HOST provided by `dired-sync-with-files'
 macro are used if needed."
-  (let* ((src-host (or s-host src-host))
-	 (dst-host (or d-host (if (boundp 'dst-host) dst-host nil)))
-	 (err (get-buffer-create "*err*"))
+  (let* ((err (get-buffer-create "*err*"))
 	 (out (get-buffer-create "*out*"))
-	 (default-directory (format "/%s:/" src-host))
-	 (cmd 
-	  (if dst-host
-	      (funcall (plist-get  dired-sync-commands :get-user-remote))
-	    (funcall (plist-get  dired-sync-commands :get-user-local))))
+	 (cmd (funcall (plist-get dired-sync-commands
+				  (if dst ':get-user-remote
+				    ':get-user-local))
+		       src dst))
 	 in-s out-s)
-    (with-timeout 
-	(dired-sync-timeout
-	 (message
-	  (format
-	   "dired-sync-get-user timeout on %s : %s" src-host cmd)))
-      (shell-command cmd out err))
-    (set-buffer out)
-    ;; Just keep the last line in case of error such as
-    ;; cd: 1149: can't cd to /path/to
-    (point-max)
-    (setq out-s (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-    (kill-buffer out)
-    (set-buffer err)
-    (setq err-s (buffer-string))
-    (kill-buffer err)
-    (when (string= "" out-s) (setq out-s nil))
-    out-s))
+
+    (dired-sync-with-files
+     src dst
+     (let ((default-directory (format "/%s:/" src-host)))
+       (with-timeout
+	   (dired-sync-timeout
+	    (message
+	     (format "dired-sync-get-user timeout on %s : %s"
+		     src-host cmd)))
+	 (shell-command cmd out err)))
+     
+     (set-buffer out)
+     ;; Just keep the last line in case of error such as
+     ;; cd: 1149: can't cd to /path/to
+     (point-max)
+     (setq out-s (buffer-substring-no-properties 
+		  (point-at-bol) (point-at-eol)))
+     (kill-buffer out)
+     (set-buffer err)
+     (setq err-s (buffer-string))
+     (kill-buffer err)
+     (when (string= "" out-s) (setq out-s nil))
+     out-s)))
 
 
 
@@ -414,7 +421,7 @@ Returned value is a PLIST with following properties.
 		    :tunnel-port nil)))
     (when (and host (not user))
       (setq ret (plist-put ret :user (dired-sync-with-files ret nil
-							    (dired-sync-get-user))))
+							    (dired-sync-get-user ret))))
       (setq ret (plist-put ret :tunnel-port
 			   (+ 1024 (random (- 32767 1024))))))
     ret))
@@ -453,7 +460,7 @@ SOURCE."
      ;; try to get e direct link between the hosts
      (when (and src-host dst-host)
        (setq direct
-	     (dired-sync-get-user src-host (format "%s@%s" dst-user dst-host))))
+	     (dired-sync-get-user src dst)))
      (setq src (plist-put src :direct direct))
      (setq dst (plist-put dst :direct direct))
      (list :src src :dst dst))))
