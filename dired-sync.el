@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 17:38:56
+;; Last changed: 2010-12-07 17:42:49
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -420,8 +420,7 @@ Returned value is a PLIST with following properties.
 		    :path-quote (shell-quote-argument path)
 		    :tunnel-port nil)))
     (when (and host (not user))
-      (setq ret (plist-put ret :user (dired-sync-with-files ret nil
-							    (dired-sync-get-user ret))))
+      (setq ret (plist-put ret :user (dired-sync-get-user ret)))
       (setq ret (plist-put ret :tunnel-port
 			   (+ 1024 (random (- 32767 1024))))))
     ret))
