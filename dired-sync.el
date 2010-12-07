@@ -58,6 +58,9 @@
 ;;  how many jumphosts you need to use to reach both source and destination
 ;;  as long as they are declared in you ssh configuration file.
 ;;
+;;  To allow `dired-sync' to work out of the box, key-based ssh
+;;  authentication is required.
+;;
 ;;      Source                       Destination
 ;;
 ;;    +---------+   (if possible)    +---------+
@@ -211,6 +214,7 @@ tunneled remote hosts."
 		"rsync --delete -a -D -i -e "
 		"'ssh -A -p " (format "%d " src-tunnel-port)
 		"-o StrictHostKeyChecking=no "
+		"-o PasswordAuthentication=no "
 		"-o UserKnownHostsFile=/dev/null' "
 		src-path-quote
 		(format " %s@localhost:%s" dst-user dst-path-quote))))))
