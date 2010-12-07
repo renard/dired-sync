@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 14:41:36
+;; Last changed: 2010-12-07 14:45:53
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -21,7 +21,7 @@
 ;; dired-sync provide a simple and easy way to synchronize directories from
 ;; dired. This tool is based upon both rsync(1) and ssh(1).
 ;;
-;; To install `dired-sync' you simply need to drop dired-sync.el in you
+;; To install `dired-sync' you simply need to drop dired-sync.el in your
 ;; load-path and bind (suggested) C-s S key to `dired-sync':
 ;;
 ;; (when (require 'dired-sync nil t)
