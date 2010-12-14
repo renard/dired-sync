@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-07 18:00:22
+;; Last changed: 2010-12-15 00:35:54
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -165,7 +165,7 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "rsync" "--delete" "-a" "-D" "-i" 
+	(list "rsync" "--delete" "-a" "-D" "-i" "-u"
 	      src-path-quote dst-path-quote)
 	nil)))
     :do-sync-remote-local
@@ -173,7 +173,7 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "rsync" "--delete" "-a" "-D" "-i"
+	(list "rsync" "--delete" "-a" "-D" "-i" "-u"
 	      (format "%s:%s" src-host src-path) dst-path)
 	nil)))
     :do-sync-local-remote
@@ -181,7 +181,7 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "rsync" "--delete" "-a" "-D" "-i" src-path
+	(list "rsync" "--delete" "-a" "-D" "-i" "-u" src-path
 	      (format "%s:%s" dst-host dst-path))
 	nil)))
     :do-sync-remote-remote-direct
@@ -190,7 +190,7 @@ tunneled remote hosts."
        src dst
        (list
 	(list "ssh" "-A" src-host
-	      (concat "rsync --delete -a -D -i -e ssh " src-path
+	      (concat "rsync --delete -a -D -i -u -e ssh " src-path
 		      (format " %s@%s:%s" dst-user dst-host
 			      dst-path)))
 	nil)))
@@ -200,7 +200,7 @@ tunneled remote hosts."
        src dst
        (list
 	(list "ssh" "-A" src-host
-	      (concat "rsync --delete -a -D -i " src-path " "
+	      (concat "rsync --delete -a -D -u -i " src-path " "
 		      dst-path))
 	nil)))
     :do-sync-remote-remote
@@ -216,7 +216,7 @@ tunneled remote hosts."
 		      dst-tunnel-port)
 	      src-host
 	      (concat 
-	       "rsync --delete -a -D -i -e "
+	       "rsync --delete -a -D -i -u -e "
 	       "'ssh -A -p " (format "%d " src-tunnel-port)
 	       "-o StrictHostKeyChecking=no "
 	       "-o PasswordAuthentication=no "
