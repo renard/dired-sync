@@ -5,12 +5,15 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-15 00:35:54
+;; Last changed: 2010-12-21 15:09:01
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; History:
+;;
+;;  * 0.2 - Fix ssh commands.
+;;
 ;;  * 0.1 - first release
 
 ;;; TODO
@@ -189,8 +192,16 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "ssh" "-A" src-host
-	      (concat "rsync --delete -a -D -i -u -e ssh " src-path
+	(list "ssh" 
+	      "-o" "StrictHostKeyChecking=no"
+	      "-o" "PasswordAuthentication=no"
+	      "-o" "UserKnownHostsFile=/dev/null"
+	      "-A" src-host
+	      (concat "rsync --delete -a -D -i -u -e 'ssh -A "
+		      "-o StrictHostKeyChecking=no "
+		      "-o PasswordAuthentication=no "
+		      "-o UserKnownHostsFile=/dev/null' "
+		      src-path
 		      (format " %s@%s:%s" dst-user dst-host
 			      dst-path)))
 	nil)))
@@ -199,7 +210,11 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "ssh" "-A" src-host
+	(list "ssh" 
+ 	      "-o" "StrictHostKeyChecking=no"
+	      "-o" "PasswordAuthentication=no"
+	      "-o" "UserKnownHostsFile=/dev/null"
+	      "-A" src-host
 	      (concat "rsync --delete -a -D -u -i " src-path " "
 		      dst-path))
 	nil)))
@@ -208,7 +223,11 @@ tunneled remote hosts."
       (dired-sync-with-files
        src dst
        (list
-	(list "ssh" "-L"
+	(list "ssh"
+ 	      "-o" "StrictHostKeyChecking=no"
+	      "-o" "PasswordAuthentication=no"
+	      "-o" "UserKnownHostsFile=/dev/null"
+	      "-L"
 	      (format "%d:127.0.0.1:22" dst-tunnel-port)
 	      dst-host)
 	(list "ssh" "-A" "-R" 
@@ -222,7 +241,7 @@ tunneled remote hosts."
 	       "-o PasswordAuthentication=no "
 	       "-o UserKnownHostsFile=/dev/null' "
 	       src-path-quote
-	       (format " %s@localhost:%s"
+	       (format " %s@127.0.0.1:%s"
 		       dst-user dst-path-quote)))))))
 
   "PLIST containing commands used to perform synchronization.
