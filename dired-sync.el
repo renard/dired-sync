@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2011-08-31 13:21:55
+;; Last changed: 2011-08-31 13:36:12
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -27,7 +27,7 @@
 ;; dired. This tool is based upon both rsync(1) and ssh(1).
 ;;
 ;; To install `dired-sync' you simply need to drop dired-sync.el in your
-;; load-path and bind (suggested) C-s S key to `dired-sync':
+;; load-path and bind (suggested) C-s S key to `dired-do-sync':
 ;;
 ;; (when (require 'dired-sync nil t)
 ;;   (define-key dired-mode-map (kbd "C-c S") 'dired-do-sync))
