@@ -5,12 +5,14 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2010-12-21 15:09:01
+;; Last changed: 2011-08-31 13:21:55
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; History:
+;;
+;;  * 0.3 - Add dired-do-sync-pool (thanks to ryukzak)
 ;;
 ;;  * 0.2 - Fix ssh commands.
 ;;
@@ -29,6 +31,12 @@
 ;;
 ;; (when (require 'dired-sync nil t)
 ;;   (define-key dired-mode-map (kbd "C-c S") 'dired-do-sync))
+;;
+;; Synchronizations can also be done using pools (seed `dired-do-sync-pool'.
+;; For this to work `dired-sync-pools' needs to be configured. To bind
+;; `dired-do-sync-pool' to C-c s add this in previous sexp:
+;;
+;; (define-key dired-mode-map (kbd "C-c s") 'dired-do-sync-pool)
 ;;
 ;; There are 3 types of directories synchronizations as explained bellow.
 ;;
@@ -125,7 +133,7 @@
  
 ;;; Code:
 
-(defconst dired-sync-version "0.1"
+(defconst dired-sync-version "0.3"
   "The version number of dired-sync.")
 
 ;;;###autoload
@@ -319,7 +327,31 @@ macro.
   :type 'plist
   :group 'dired-sync)
 
+(defcustom dired-sync-pools nil
+  "List of pool to be used in `dired-sync-pool'.
 
+Each pool consists of a list:
+
+  \(NAME :src SOURCE :dst DESTINATIONs\)
+
+NAME is the pool name.
+
+SOURCE is the pool source directory path.
+
+DESTINATIONs is the pool destination path. it can either be a
+path string or a list of paths."
+  :type plist
+  :group 'dired-sync)
+
+(defvar dired-sync-pool-history nil
+  "History list for pools `dired-sync-pool'.")
+
+(defvar dired-sync-pool-dst-history nil
+  "History list for destinations limit in `dired-sync-pool'.")
+
+(defvar dired-sync-pool-all "*"
+  "Marker to be used in `dired-sync-pool' to synchronize all
+  destinations.")
 
 (defmacro dired-sync-with-files (src dst &rest body)
   "Execute BODY after converting both SRC and DST to variables according
@@ -558,5 +590,57 @@ SOURCE."
 	(kill-buffer buf))
       (when related
 	(kill-process related)))))
+
+
+;;;###autoload
+(defun dired-do-sync-pool (&optional pool dst-limit)
+  "Sync pools defined in `dired-sync-pools'.
+
+If POOL is not defined, user would be prompted for one.
+
+If DST-LIMIT is passed to the function, it would override the
+destination for the synchronization.
+
+If called interactively using `universal-argument' (C-u)
+synchronization DST-LIMIT would be prompted in addition to POOL.
+
+If DST-LIMIT is `dired-sync-pool-all' all defined destination
+would be synchronized."
+  (interactive "P")
+  (let* ((pool (if (or current-prefix-arg (not pool))
+		   (completing-read
+		    "Sync pool: "
+		    (mapcar 'car dired-sync-pools)
+		    nil t nil dired-sync-pool-history nil t)
+		 pool))
+	 (pool-conf (cdr (assoc pool dired-sync-pools)))
+	 (src (plist-get pool-conf :src))
+	 (dst (plist-get pool-conf :dst)))
+
+    ;; Make sure dst is a list for further actions.
+    (unless (listp dst)
+      (setq dst `(,dst)))
+
+    ;; limitation
+    (when (and current-prefix-arg
+	       (> (length dst) 1))
+      (setq dst-limit
+	    (completing-read
+	     "Limit to destination: "
+	     (cons dired-sync-pool-all
+		   (if (listp dst) dst `(,dst)))
+	     nil t nil dired-sync-pool-dst-history nil t)))
+
+    (when dst-limit
+      (if (listp dst-limit)
+	  (setq dst dst-limit)
+	(unless (string= dired-sync-pool-all dst-limit))
+	(setq dst `(,dst-limit))))
+
+    (mapcar
+     '(lambda(x)
+	(message (format "syncing pool %s: %s -> %s" pool src x))
+	(dired-do-sync src x))
+     dst)))
 
 (provide 'dired-sync)
