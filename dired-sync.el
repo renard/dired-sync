@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2011-08-31 13:36:12
+;; Last changed: 2011-09-02 16:08:37
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -340,7 +340,7 @@ SOURCE is the pool source directory path.
 
 DESTINATIONs is the pool destination path. it can either be a
 path string or a list of paths."
-  :type plist
+  :type 'plist
   :group 'dired-sync)
 
 (defvar dired-sync-pool-history nil
