@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2011-09-02 16:08:37
+;; Last changed: 2014-07-10 13:26:33
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -132,6 +132,10 @@
 ;;
  
 ;;; Code:
+
+(eval-when-compile
+  (require 'tramp)
+  (require 'dired))
 
 (defconst dired-sync-version "0.3"
   "The version number of dired-sync.")
