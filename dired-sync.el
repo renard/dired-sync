@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2014-07-10 13:26:33
+;; Last changed: 2014-07-10 13:41:07
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -506,11 +506,11 @@ SOURCE."
      ;; Prevent from copying all source files into destination without
      ;; creating a new directory.
      (unless (string= "/" src-path)
-       (mapcar '(lambda(x)
-		  (setq src
-			(plist-put src x
-				   (replace-regexp-in-string
-				    "/*$" "" (plist-get src x)))))
+       (mapcar #'(lambda(x)
+		   (setq src
+			 (plist-put src x
+				    (replace-regexp-in-string
+				     "/*$" "" (plist-get src x)))))
 	       '(:file :path :path-quote)))
 
      ;; try to get e direct link between the hosts
@@ -642,9 +642,9 @@ would be synchronized."
 	(setq dst `(,dst-limit))))
 
     (mapcar
-     '(lambda(x)
-	(message (format "syncing pool %s: %s -> %s" pool src x))
-	(dired-do-sync src x))
+     #'(lambda(x)
+	 (message (format "syncing pool %s: %s -> %s" pool src x))
+	 (dired-do-sync src x))
      dst)))
 
 (provide 'dired-sync)
