@@ -5,7 +5,7 @@
 ;; Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 ;; Keywords: emacs, dired, rsync
 ;; Created: 2010-12-02
-;; Last changed: 2014-07-10 13:41:07
+;; Last changed: 2014-09-30 21:27:59
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 ;; This file is NOT part of GNU Emacs.
@@ -591,7 +591,9 @@ SOURCE."
 	      (set-window-buffer (selected-window) buf))
 	    (error "dired-sync failled"))
 	(message "dired-sync success")
-	(kill-buffer buf))
+	;; in case buffer has been destroyed
+	(when (get-buffer buf)
+	  (kill-buffer buf)))
       (when related
 	(kill-process related)))))
 
